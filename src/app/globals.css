@@ -1281,3 +1281,20 @@ body[data-immersive="true"] [data-tabbar] {
   display: none !important;
   visibility: hidden !important;
 }
+
+/* === FIX: Giant black scrollbar in chat === */
+.chat-scroller {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
+}
+.chat-scroller::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
+}
+
+/* Constrain chat bubbles on large screens so they don't stretch to the edges */
+@media (min-width: 900px) {
+  .chat-scroller > .msgs {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
