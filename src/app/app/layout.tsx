@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { AppShell } from '@/components/shell/AppShell';
-import { IncomingCallListener } from '@/components/chat/IncomingCallListener';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = getSession();
@@ -19,7 +18,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <IncomingCallListener />
       <AppShell>{children}</AppShell>
     </>
   );

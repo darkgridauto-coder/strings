@@ -4,7 +4,6 @@ import { Sidebar } from '@/components/shell/Sidebar';
 import { RightRail } from '@/components/shell/RightRail';
 import { TabBar } from '@/components/shell/TabBar';
 import { SheetProvider } from '@/components/ui/Sheet';
-import { ToastProvider } from '@/components/ui/Toast';
 import { SocketProvider } from '@/components/chat/SocketProvider';
 import { UserProvider } from '@/components/UserProvider';
 import { IncomingCallListener } from '@/components/chat/IncomingCallListener';
@@ -17,7 +16,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <SocketProvider>
       <UserProvider>
         <SheetProvider>
-          <ToastProvider>
             <IncomingCallListener />
             <div id="app" className={solo ? 'solo' : ''}>
               <Sidebar />
@@ -25,7 +23,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <RightRail />
               <TabBar />
             </div>
-          </ToastProvider>
         </SheetProvider>
       </UserProvider>
     </SocketProvider>

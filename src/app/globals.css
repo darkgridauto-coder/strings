@@ -1312,3 +1312,74 @@ body[data-immersive="true"] [data-tabbar] {
 .shell {
   background-color: var(--bg) !important;
 }
+
+/* ============================================================
+   BULLETPROOF SCROLLBAR KILL
+   Targets every possible pseudo-element and forces it to vanish.
+   ============================================================ */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Remove the right border from shell-main just in case it's rendering weirdly */
+.shell-main {
+  border-right: none !important;
+}
+
+/* ============================================================
+   ULTIMATE SCROLLBAR & BORDER KILL
+   ============================================================ */
+.chat-scroller::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+.chat-scroller {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* Remove any rogue borders between columns */
+.shell-main { border-right: none !important; }
+.rail { border-left: none !important; }
+
+/* ============================================================
+   ULTIMATE SCROLLBAR & BORDER KILL
+   ============================================================ */
+.chat-scroller::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+.chat-scroller {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* Remove any rogue borders between columns */
+.shell-main { border-right: none !important; }
+.rail { border-left: none !important; }
+
+/* FIX: Prevent the global body > div height rule from stretching the toast */
+body > .toast {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  width: max-content;
+  max-width: 90%;
+  box-sizing: border-box;
+}

@@ -233,7 +233,7 @@ export function ConversationView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
       {groupHeader}
-      <div ref={scroller} style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px', ...wallpaperStyle(wallpaper) }}>
+      <div ref={scroller} className="chat-scroller" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {loading && <p className="muted" style={{ textAlign: 'center' }}>Loading…</p>}
         {!loading && messages.length === 0 && (
           <p className="muted" style={{ textAlign: 'center', marginTop: 30 }}>No messages yet. Say hello.</p>
