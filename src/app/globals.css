@@ -1282,14 +1282,7 @@ body[data-immersive="true"] [data-tabbar] {
   visibility: hidden !important;
 }
 
-/* === FIX: Giant black scrollbar in chat === */
-.chat-scroller {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE */
-}
-.chat-scroller::-webkit-scrollbar {
-  display: none; /* Chrome/Safari/Edge */
-}
+
 
 /* Constrain chat bubbles on large screens so they don't stretch to the edges */
 @media (min-width: 900px) {
@@ -1297,4 +1290,25 @@ body[data-immersive="true"] [data-tabbar] {
     max-width: 800px;
     margin: 0 auto;
   }
+}
+
+/* ============================================================
+   GLOBAL SCROLLBAR FIX
+   Forces all scrollbars (page, sidebars, chat) to be invisible.
+   This eliminates the giant black line.
+   ============================================================ */
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Edge, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Ensure the grid background matches the app background so no black gaps show */
+.shell {
+  background-color: var(--bg) !important;
 }
