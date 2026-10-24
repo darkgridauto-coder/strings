@@ -151,12 +151,3 @@ export default function Page({ params }: { params: { id: string } }) {
     </>
   );
 }
-
-/* Appended by script for immersive mode */
-import { useEffect } from 'react';
-export function useImmersive() {
-  useEffect(() => {
-    document.body.setAttribute('data-immersive', 'true');
-    return () => { document.body.removeAttribute('data-immersive'); };
-  }, []);
-}
