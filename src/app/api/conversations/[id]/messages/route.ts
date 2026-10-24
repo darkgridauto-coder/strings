@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { notify } from '@/lib/notify';
 
 const MESSAGE_SELECT = {
   id: true,
@@ -95,6 +96,26 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const io = (global as any).io;
     if (io) io.to(params.id).emit('message', message);
+
+    // Notify every other conversation participant without delaying message delivery
+    // or allowing notification failures to turn a saved message into an API failure.
+    const recipients = conv.participants.filter((participant) => participant.id !== s.userId);
+    const preview = text
+      ? text.slice(0, 140)
+      : mediaKind
+        ? `Sent ${mediaKind}`
+        : 'Sent an attachment';
+
+    await Promise.allSettled(
+      recipients.map((recipient) =>
+        notify(
+          recipient.id,
+          'message',
+          `@${s.handle || 'Someone'}: ${preview}`,
+          '/app/messages'
+        )
+      )
+    );
 
     return NextResponse.json({ ok: true, message });
   } catch (e: any) {

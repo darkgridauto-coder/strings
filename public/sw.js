@@ -129,14 +129,10 @@ self.addEventListener('push', (event) => {
     vibrate: [80, 40, 80],
     renotify: true,
   };
+  // Show push notifications even when another Strings tab is visible.
+  // This lets users notice messages and updates while viewing another page.
   event.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((list) => {
-        const visible = list.some((c) => c.visibilityState === 'visible');
-        if (visible) return;
-        return self.registration.showNotification(data.title || 'Strings', opts);
-      })
+    self.registration.showNotification(data.title || 'Strings', opts)
   );
 });
 

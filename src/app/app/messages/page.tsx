@@ -116,7 +116,27 @@ export default function MessagesPage() {
         </div>
         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
           <small className="muted" style={{ fontSize: '.75em' }}>{formatTime(c.lastMessage?.createdAt)}</small>
-          {(c.unreadCount || 0) > 0 && <div className="dot" />}
+          {(c.unreadCount || 0) > 0 && (
+            <span
+              aria-label={`${c.unreadCount} unread messages`}
+              className="badge"
+              style={{
+                minWidth: 21,
+                height: 21,
+                padding: '0 6px',
+                borderRadius: 11,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '.72em',
+                fontWeight: 700,
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {c.unreadCount! > 99 ? '99+' : c.unreadCount}
+            </span>
+          )}
         </div>
       </Link>
     );

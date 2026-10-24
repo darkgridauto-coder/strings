@@ -3,25 +3,105 @@ import { SettingsShell } from '@/components/settings/SettingsShell';
 import { Row } from '@/components/ui/Row';
 import { Toggle } from '@/components/ui/Toggle';
 import { useSetting } from '@/lib/useSetting';
+import { useUser } from '@/components/UserProvider';
+import { useToast } from '@/components/ui/Toast';
+import { registerPush, unregisterPush } from '@/lib/pushClient';
 
 export default function Page() {
-  const [inapp, setInapp] = useSetting('notifInapp', true);
-  const [push, setPush] = useSetting('notifPush', false);
-  const [email, setEmail] = useSetting('notifEmail', false);
-  const [followers, setFollowers] = useSetting('notifFol', true);
-  const [reactions, setReactions] = useSetting('notifRea', true);
-  const [messages, setMessages] = useSetting('notifMsg', true);
+  const { showToast } = useToast();
+  const { refresh } = useUser();
+  const [inapp] = useSetting('notifInapp', true);
+  const [push] = useSetting('notifPush', false);
+
+  async function savePushPreference(enabled: boolean): Promise<boolean> {
+    try {
+      const response = await fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: { notifPush: enabled } }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) return false;
+      await refresh();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function changePreference(key: string, enabled: boolean) {
+    try {
+      const response = await fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: { [key]: enabled } }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        await refresh().catch(() => {});
+        showToast('Could not save this notification preference. Please try again.');
+        return;
+      }
+
+      await refresh();
+    } catch {
+      await refresh().catch(() => {});
+      showToast('Could not save this notification preference. Please try again.');
+    }
+  }
+
+  async function changePush(enabled: boolean) {
+    if (enabled) {
+      try {
+        const result = await registerPush();
+        if (!result.ok) {
+          showToast(result.error || 'Could not enable push notifications');
+          return;
+        }
+
+        const saved = await savePushPreference(true);
+        if (!saved) {
+          await unregisterPush().catch(() => {});
+          showToast('Push was registered, but its preference could not be saved. Please try again.');
+          return;
+        }
+
+        showToast('Push notifications enabled');
+      } catch {
+        showToast('Could not enable push notifications');
+      }
+      return;
+    }
+
+    const saved = await savePushPreference(false);
+    if (!saved) {
+      showToast('Could not save the push preference. Please try again.');
+      return;
+    }
+
+    try {
+      await unregisterPush();
+      showToast('Push notifications disabled');
+    } catch {
+      showToast('Push preference disabled; browser subscription cleanup may need retrying.');
+    }
+  }
+  const [email] = useSetting('notifEmail', false);
+  const [followers] = useSetting('notifFol', true);
+  const [reactions] = useSetting('notifRea', true);
+  const [messages] = useSetting('notifMsg', true);
 
   return (
     <SettingsShell title="Notifications" back="/app/settings">
       <h3 style={{ marginTop: 0 }}>Channels</h3>
-      <Row title="In-app notifications" sub="Activity shown inside Strings" trail={<Toggle checked={inapp} onChange={setInapp} label="In-app" />} />
-      <Row title="Push notifications" sub="Requires browser permission" trail={<Toggle checked={push} onChange={setPush} label="Push" />} />
-      <Row title="Email notifications" sub="Requires mail backend" trail={<Toggle checked={email} onChange={setEmail} label="Email" />} />
+      <Row title="In-app notifications" sub="Activity shown inside Strings" trail={<Toggle checked={inapp} onChange={(enabled) => changePreference("notifInapp", enabled)} label="In-app" />} />
+      <Row title="Push notifications" sub="Requires browser permission" trail={<Toggle checked={push} onChange={changePush} label="Push" />} />
+      <Row title="Email notifications" sub="Requires mail backend" trail={<Toggle checked={email} onChange={(enabled) => changePreference("notifEmail", enabled)} label="Email" />} />
       <h3 style={{ marginTop: 24 }}>Activity</h3>
-      <Row title="New followers" trail={<Toggle checked={followers} onChange={setFollowers} label="Followers" />} />
-      <Row title="Reactions and comments" trail={<Toggle checked={reactions} onChange={setReactions} label="Reactions" />} />
-      <Row title="Messages" trail={<Toggle checked={messages} onChange={setMessages} label="Messages" />} />
+      <Row title="New followers" trail={<Toggle checked={followers} onChange={(enabled) => changePreference("notifFol", enabled)} label="Followers" />} />
+      <Row title="Reactions and comments" trail={<Toggle checked={reactions} onChange={(enabled) => changePreference("notifRea", enabled)} label="Reactions" />} />
+      <Row title="Messages" trail={<Toggle checked={messages} onChange={(enabled) => changePreference("notifMsg", enabled)} label="Messages" />} />
       <Row icon="clock" title="Quiet hours" sub="Configure a schedule" href="/app/settings/notifications/quiet-hours" showChevron />
       <p className="muted" style={{ fontSize: '.8em', marginTop: 16 }}>All preferences are saved to your account.</p>
     </SettingsShell>

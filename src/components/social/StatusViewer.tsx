@@ -48,7 +48,7 @@ export function StatusViewer({
         onClick={next}
         style={{ flex: 1, display: 'grid', placeItems: 'center', padding: 30, textAlign: 'center', fontSize: '1.9em', fontWeight: 700, letterSpacing: '-.03em', lineHeight: 1.15, cursor: 'pointer', margin: '0 8px', borderRadius: 24, background: bg, color: tx, overflow: 'hidden', position: 'relative' }}
       >
-        {s.img && <img src={s.img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(1)' }} />}
+        {s.img && <img src={s.img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'none' }} />}
         <span style={{ position: 'relative', textShadow: '0 1px 12px rgba(0,0,0,.5)' }}>{s.body || ''}</span>
       </div>
       {s.isMine && (

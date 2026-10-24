@@ -123,19 +123,53 @@ export async function POST(req: NextRequest) {
         select: { followerId: true },
       });
       if (followers.length > 0) {
-        const notifs = followers.map(f => ({
+        // Apply activity and in-app preferences before notifying followers.
+        const followerIds = followers.map(f => f.followerId);
+        const followerUsers = await prisma.user.findMany({
+          where: { id: { in: followerIds } },
+          select: { id: true, settings: true },
+        });
+
+        const settingsByUser = new Map<string, Record<string, unknown>>();
+        for (const user of followerUsers) {
+          try {
+            const parsed = JSON.parse(user.settings || '{}');
+            settingsByUser.set(
+              user.id,
+              parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+                ? parsed
+                : {}
+            );
+          } catch {
+            settingsByUser.set(user.id, { notifRea: false, notifInapp: false });
+          }
+        }
+
+        const eligibleFollowers = followers.filter(f => {
+          const settings = settingsByUser.get(f.followerId);
+          return settings
+            && settings.notifRea !== false
+            && settings.notifInapp !== false;
+        });
+
+        const notifs = eligibleFollowers.map(f => ({
           userId: f.followerId,
           kind: 'post',
           body: `@${v.handle} just posted`,
           link: `/app/posts/${post.id}`,
         }));
-        await prisma.notification.createMany({ data: notifs });
-        
-        // Emit socket events
+
+        if (notifs.length > 0) {
+          await prisma.notification.createMany({ data: notifs });
+        }
+
         const io = (global as any).io;
         if (io) {
-          followers.forEach(f => {
-            io.to(`user-${f.followerId}`).emit('notification', { type: 'post', link: `/app/posts/${post.id}` });
+          eligibleFollowers.forEach(f => {
+            io.to(`user-${f.followerId}`).emit('notification', {
+              type: 'post',
+              link: `/app/posts/${post.id}`,
+            });
           });
         }
       }
