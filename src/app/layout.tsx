@@ -11,17 +11,18 @@ import { SWRegister } from '@/components/pwa/SWRegister';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 
 export const metadata: Metadata = {
-  // REPLACE this URL in Render environment variables: NEXT_PUBLIC_APP_URL
+  // Make sure this environment variable matches your exact Render URL!
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://strings-app.onrender.com'),
   title: 'Strings | Connect in transparency... black and white.',
-  description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, share moments, and join the community.',
+  // Shortened to 111 characters
+  description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, and share moments.',
   applicationName: 'Strings',
   authors: [{ name: 'Strings' }],
   keywords: ['social media', 'messaging', 'transparency', 'strings', 'community'],
   
   openGraph: {
     title: 'Strings | Connect in transparency... black and white.',
-    description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, share moments, and join the community.',
+    description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, and share moments.',
     url: '/',
     siteName: 'Strings',
     images: [
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Strings | Connect in transparency... black and white.',
-    description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, share moments, and join the community.',
+    description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, and share moments.',
     images: ['/og-image.png'],
   },
 
