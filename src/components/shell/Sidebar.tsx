@@ -5,6 +5,7 @@ import { Icon, IconName } from '@/components/ui/Icon';
 import { Avatar } from '@/components/ui/Avatar';
 import { useUser } from '@/components/UserProvider';
 import { VerifiedSeal } from '@/components/ui/VerifiedSeal';
+import { NotificationBadge } from '@/components/NotificationBadge';
 
 type Nav = { icon: IconName; label: string; href: string };
 
@@ -36,7 +37,10 @@ export function Sidebar() {
       <nav>
         {MAIN.map((n) => (
           <Link key={n.href} href={n.href} className={`nav-link${isActive(pathname, n.href) ? ' active' : ''}`}>
-            <Icon name={n.icon} /><span>{n.label}</span>
+            <NotificationBadge type={n.label === 'Messages' ? 'messages' : n.label === 'Activity' ? 'notifications' : 'messages'}>
+            <Icon name={n.icon} />
+          </NotificationBadge>
+          <span>{n.label}</span>
           </Link>
         ))}
       </nav>

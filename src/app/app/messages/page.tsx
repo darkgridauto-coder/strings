@@ -209,8 +209,14 @@ export default function MessagesPage() {
                     <div className="row-sub">{getPreview(r)}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="pill sm" style={{ background: 'var(--b3)' }}>Delete</button>
-                    <button className="pill sm on" onClick={() => alert('Accepted!')}>Accept</button>
+                    <button className="pill sm" style={{ background: 'var(--b3)' }} onClick={async () => {
+                        const res = await fetch(`/api/conversations/requests/${r.id}/decline`, { method: 'POST' });
+                        if (res.ok) { window.location.reload(); }
+                      }}>Decline</button>
+                    <button className="pill sm on" onClick={async () => {
+                        const res = await fetch(`/api/conversations/requests/${r.id}/accept`, { method: 'POST' });
+                        if (res.ok) { window.location.reload(); }
+                      }}>Accept</button>
                   </div>
                 </div>
               );

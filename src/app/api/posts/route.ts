@@ -116,6 +116,33 @@ export async function POST(req: NextRequest) {
       },
       include: { author: { select: { id: true, handle: true, displayName: true, avatar: true } } },
     });
+    // Notify followers
+    try {
+      const followers = await prisma.follow.findMany({
+        where: { followingId: v.userId, status: 'accepted' },
+        select: { followerId: true },
+      });
+      if (followers.length > 0) {
+        const notifs = followers.map(f => ({
+          userId: f.followerId,
+          kind: 'post',
+          body: `@${v.handle} just posted`,
+          link: `/app/posts/${post.id}`,
+        }));
+        await prisma.notification.createMany({ data: notifs });
+        
+        // Emit socket events
+        const io = (global as any).io;
+        if (io) {
+          followers.forEach(f => {
+            io.to(`user-${f.followerId}`).emit('notification', { type: 'post', link: `/app/posts/${post.id}` });
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Failed to notify followers', e);
+    }
+
     return NextResponse.json({ ok: true, post });
   } catch (e: any) {
     console.error('[/api/posts POST]', e?.message || e);

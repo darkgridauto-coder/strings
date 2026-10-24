@@ -37,6 +37,7 @@ export function ConversationView({
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isPendingRequest, setIsPendingRequest] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordTime, setRecordTime] = useState(0);
@@ -77,6 +78,10 @@ export function ConversationView({
   useEffect(() => {
     setLoading(true);
     fetch(`/api/conversations/${conversationId}/messages`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && d.isRequest) setIsPendingRequest(true);
+      })
       .then((r) => r.ok ? r.json() : { ok: false })
       .then((d: any) => { if (d.ok) { setMessages(d.messages || []); scrollDown(); } else setError(d.error || 'Could not load'); })
       .catch(() => setError('Network error'))
@@ -300,6 +305,21 @@ export function ConversationView({
     ? messages.find((m) => m.id === replyingTo) || null
     : null;
 
+  
+  if (isPendingRequest) {
+    return (
+      <div className="page" style={{ padding: 40, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+        <h2>Message Request</h2>
+        <p className="muted">@{peerHandle} wants to send you a message. Do you want to accept?</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 20 }}>
+          <button className="btn o" onClick={() => handleRequest('decline')}>Decline</button>
+          <button className="btn" onClick={() => handleRequest('accept')}>Accept</button>
+        </div>
+      </div>
+    );
+  }
+
+  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
       {groupHeader}

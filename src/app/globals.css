@@ -1258,3 +1258,26 @@ body[data-immersive="true"] .tabbar {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
   30% { transform: translateY(-3px); opacity: 1; }
 }
+
+/* === LAYOUT & SCROLLBAR FIXES === */
+/* Hide the giant black line/scrollbar glitch on desktop */
+.shell-main {
+  min-height: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+.page {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
+  height: 100%;
+}
+.page::-webkit-scrollbar { 
+  display: none; 
+}
+
+/* Ensure nav bar hides on iPhone for immersive mode */
+body[data-immersive="true"] .tabbar,
+body[data-immersive="true"] [data-tabbar] {
+  display: none !important;
+  visibility: hidden !important;
+}
