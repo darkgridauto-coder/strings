@@ -2,12 +2,19 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: {
-    // Allow images from Render-hosted URLs if you use next/image
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+
+  // Dev: fewer full-page reloads
+  onDemandEntries: {
+    maxInactiveAge: 60 * 60 * 1000,   // 1 hour — keep pages compiled
+    pagesBufferLength: 5,
   },
+
+  experimental: {
+    serverActions: { bodySizeLimit: '10mb' },
+  },
+
+  // Reduce source-map cost in dev
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

@@ -1,9 +1,28 @@
 'use client';
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useSocket } from './SocketProvider';
-import { RealCallOverlay } from './RealCallOverlay';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+
+// Lazy-load LiveKit only when a call is actually accepted
+const RealCallOverlay = dynamic(
+  () => import('./RealCallOverlay').then((m) => ({ default: m.RealCallOverlay })),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: '#000', color: '#fff',
+          display: 'grid', placeItems: 'center',
+        }}
+      >
+        Loading call…
+      </div>
+    ),
+  }
+);
 
 type Incoming = { fromHandle: string; roomName: string; video: boolean };
 
@@ -27,7 +46,6 @@ export function IncomingCallListener() {
     };
   }, [socket, inCall]);
 
-  // Ring timeout — auto-decline after 45 seconds
   useEffect(() => {
     if (!call || !socket) return;
     const to = setTimeout(() => {

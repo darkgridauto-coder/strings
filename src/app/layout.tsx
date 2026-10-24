@@ -6,7 +6,6 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { SheetProvider } from '@/components/ui/Sheet';
 import { Splash } from '@/components/Splash';
 import { ImageViewer } from '@/components/ui/ImageViewer';
-import { IncomingCallListener } from '@/components/chat/IncomingCallListener';
 import { SWRegister } from '@/components/pwa/SWRegister';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 
@@ -68,7 +67,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ToastProvider>
               <SheetProvider>
                 <Splash />
-                <IncomingCallListener />
                 {children}
                 <ImageViewer />
                 <InstallPrompt />
