@@ -10,7 +10,8 @@ echo "> Waiting for database..."
 ATTEMPTS=0
 MAX=30
 while [ $ATTEMPTS -lt $MAX ]; do
-  if npx prisma db execute --stdin --schema=./prisma/schema.prisma <<< "SELECT 1" >/dev/null 2>&1; then
+  # Use echo pipe instead of <<< to stay POSIX compliant (Alpine ash compatibility)
+  if echo "SELECT 1" | npx prisma db execute --stdin --schema=./prisma/schema.prisma >/dev/null 2>&1; then
     echo "> Database ready"
     break
   fi
