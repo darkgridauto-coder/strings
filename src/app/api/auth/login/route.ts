@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { loginSchema } from '@/lib/validation';
-import { verifyPassword, signSession, signPending2FA, setSessionCookie, setPending2FACookie } from '@/lib/auth';
+import { verifyPassword, signSession, setSessionCookie, signPending2FA, setPending2FACookie, clearSessionCookie } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
 
     clearSessionCookie();
     setSessionCookie(signSession(sessionPayload));
+    
     return NextResponse.json({ ok: true, user: { id: user.id, handle: user.handle, displayName: user.displayName } });
   } catch (e) {
     console.error('[login]', e);
