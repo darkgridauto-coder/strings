@@ -86,3 +86,4 @@ strings@*
 
 # Keep actual scripts in scripts/
 !scripts/*.sh
+!docker-entrypoint.sh
