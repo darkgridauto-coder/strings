@@ -6,14 +6,44 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { SheetProvider } from '@/components/ui/Sheet';
 import { Splash } from '@/components/Splash';
 import { ImageViewer } from '@/components/ui/ImageViewer';
+import { IncomingCallListener } from '@/components/chat/IncomingCallListener';
 import { SWRegister } from '@/components/pwa/SWRegister';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 
 export const metadata: Metadata = {
-  title: 'Strings',
-  description: 'Connect in transparency... black and white.',
-  manifest: '/manifest.webmanifest',
+  // REPLACE this URL in Render environment variables: NEXT_PUBLIC_APP_URL
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://strings-app.onrender.com'),
+  title: 'Strings | Connect in transparency... black and white.',
+  description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, share moments, and join the community.',
   applicationName: 'Strings',
+  authors: [{ name: 'Strings' }],
+  keywords: ['social media', 'messaging', 'transparency', 'strings', 'community'],
+  
+  openGraph: {
+    title: 'Strings | Connect in transparency... black and white.',
+    description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, share moments, and join the community.',
+    url: '/',
+    siteName: 'Strings',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Strings - Connect in transparency',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Strings | Connect in transparency... black and white.',
+    description: 'Strings is a social and private messaging platform. Connect in transparency, chat with friends, share moments, and join the community.',
+    images: ['/og-image.png'],
+  },
+
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -28,6 +58,17 @@ export const metadata: Metadata = {
     shortcut: '/icons/favicon-32.png',
   },
   formatDetection: { telephone: false },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export const viewport: Viewport = {
@@ -67,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ToastProvider>
               <SheetProvider>
                 <Splash />
+                <IncomingCallListener />
                 {children}
                 <ImageViewer />
                 <InstallPrompt />

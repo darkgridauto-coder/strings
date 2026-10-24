@@ -31,8 +31,8 @@ export default function Page() {
   return (
     <>
       <header className="topbar">
-        <span style={{ width: 42 }} />
-        <h1>Home</h1>
+        <h1 className="left">Home</h1>
+        <div style={{ flex: 1 }} />
         <div className="topbar-actions">
           <Link className="ib" href="/app/search" aria-label="Search"><Icon name="search" /></Link>
           <Link className="ib" href="/app/notifications" aria-label="Activity"><Icon name="bell" /></Link>

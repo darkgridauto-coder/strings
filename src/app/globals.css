@@ -160,7 +160,7 @@ code {
   flex: 1; font-size: 1.05em; font-weight: 650; letter-spacing: -.02em;
   text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.topbar h1.left { text-align: left; font-size: 1.8em; font-weight: 800; letter-spacing: -.05em; }
+.topbar h1.left { text-align: left; font-size: 1.8em; font-weight: 800; letter-spacing: -.05em; margin: 0; flex: 1; }
 .topbar-actions { display: flex; gap: 2px; }
 @media (min-width: 900px) {
   .topbar { padding: 14px 24px; min-height: 66px; border-bottom: 1px solid var(--ln); }
@@ -181,7 +181,7 @@ code {
    ============================================================ */
 .shell { height: 100dvh; overflow: hidden; display: block; }
 .shell-main { height: 100%; overflow: hidden; display: flex; flex-direction: column; }
-.page { flex: 1; min-height: 0; padding: 6px var(--pad) 130px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.page { flex: 1; min-height: 0; padding: 16px var(--pad) 130px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 @media (min-width: 600px) and (max-width: 899px) {
   .page {
     padding-left: max(16px, calc((100% - 640px) / 2));

@@ -124,14 +124,15 @@ export default function MessagesPage() {
 
   return (
     <div style={{ paddingBottom: 80 }}>
-      <div className="top" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-        <h1 className="big" style={{ flex: 1 }}>Messages</h1>
-        <div className="tr">
+      <header className="topbar">
+        <h1 className="left">Messages</h1>
+        <div style={{ flex: 1 }} />
+        <div className="topbar-actions">
           <button className="ib" aria-label="New message" onClick={() => openSheet(<NewMessageSheet />)}>
             <Icon name="edit" />
           </button>
         </div>
-      </div>
+      </header>
 
       <div className="seg" style={{ margin: '12px 16px', padding: 4, background: 'var(--b2)', borderRadius: 16 }}>
         {(['chats', 'requests', 'calls'] as Tab[]).map(t => (
