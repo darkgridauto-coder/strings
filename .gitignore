@@ -1,0 +1,88 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Environment — NEVER commit
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+!.env.example
+!.env.production.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+
+# Database
+prisma/dev.db
+prisma/dev.db-journal
+prisma/dev.db-wal
+prisma/dev.db-shm
+prisma/ci.db
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Uploads (user media, not source)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Deployment
+.vercel
+.netlify
+.fly
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Keys
+*.pem
+*.key
+certs/
+complete_codebase.txt
+.fuse_hidden*
+
+# Junk files from dev sessions
+*.sh
+all_files.txt
+folder_structure.txt
+folder_summary.txt
+full_code_dump.txt
+nextjs_code.txt
+project_dump.txt
+complete_codebase.txt
+Ready
+main
+node
+tsc
+strings@*
+
+# Keep actual scripts in scripts/
+!scripts/*.sh
