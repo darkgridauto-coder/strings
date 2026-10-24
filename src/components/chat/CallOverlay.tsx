@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCall } from '@/components/chat/CallProvider';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/Icon';
@@ -15,12 +15,10 @@ export function CallOverlay() {
   const [addHandle, setAddHandle] = useState('');
   const [tick, setTick] = useState(0);
 
-  useEffect(() => {
-    if (call?.state === 'connected') {
-      const timer = setInterval(() => setTick(t => t + 1), 1000);
-      return () => clearInterval(timer);
-    }
-  }, [call?.state]);
+  // Force rerender every second for duration
+  if (call?.state === 'connected' && call.startedAt) {
+    setTimeout(() => setTick(t => t + 1), 1000);
+  }
 
   if (!call) return null;
 
@@ -29,41 +27,32 @@ export function CallOverlay() {
   const isConnected = call.state === 'connected';
   const dur = call.startedAt ? fmtDur(Date.now() - call.startedAt) : '';
 
-  // If there are multiple participants, show a grid
-  const isGroup = call.participants.length > 1;
-
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: '#0a0a0a', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* Top Bar */}
-      <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: call.video && call.cameraOn && isConnected ? '#000' : 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%)',
+      color: '#fff', display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Top bar */}
+      <div style={{ padding: '16px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: '0.85em', opacity: 0.7 }}>
-          {call.video ? 'Video call' : 'Voice call'} {isConnected && ` · ${dur}`} {isRinging && ' · Ringing…'}
+          {call.video ? 'Video call' : 'Voice call'}
+          {isConnected && ` · ${dur}`}
+          {isRinging && ' · Ringing…'}
         </div>
         <button onClick={endCall} aria-label="Close" style={{ background: 'transparent', color: '#fff', border: 0 }}>
           <Icon name="x" size={20} />
         </button>
       </div>
 
-      {/* Main Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, padding: '0 20px', position: 'relative' }}>
-        
-        {call.video && isConnected ? (
-          <div style={{ width: '100%', height: '100%', borderRadius: 24, background: '#222', display: 'flex', flexWrap: 'wrap', alignContent: 'center', justifyContent: 'center', gap: 8, padding: 16 }}>
-            {/* Demo Video Grid */}
-            {call.participants.map((p, i) => (
-              <div key={i} style={{ width: isGroup ? '45%' : '100%', height: isGroup ? '45%' : '80%', background: '#111', borderRadius: 16, display: 'grid', placeItems: 'center', border: '1px solid #333' }}>
-                <div style={{ textAlign: 'center', opacity: 0.6 }}>
-                  <Avatar name={p.displayName} size="lg" />
-                  <p style={{ marginTop: 8, fontSize: '.85em' }}>{p.displayName}</p>
-                </div>
-              </div>
-            ))}
-            {call.cameraOn && (
-              <div style={{ position: 'absolute', bottom: 20, right: 20, width: 120, height: 160, borderRadius: 16, background: '#333', border: '2px solid #fff', display: 'grid', placeItems: 'center' }}>
-                <small>You (Demo)</small>
-              </div>
-            )}
+      {/* Center area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, padding: '0 20px' }}>
+        {call.video && isConnected && call.cameraOn ? (
+          <div style={{ width: '100%', maxWidth: 400, aspectRatio: '3/4', borderRadius: 24, background: '#222', display: 'grid', placeItems: 'center', border: '1px solid #333' }}>
+            <div style={{ textAlign: 'center', opacity: 0.6 }}>
+              <Icon name="video" size={40} />
+              <p style={{ marginTop: 8, fontSize: '.85em' }}>Camera preview (demo)</p>
+            </div>
           </div>
         ) : (
           <>
@@ -72,19 +61,23 @@ export function CallOverlay() {
             <p style={{ opacity: 0.6, margin: 0 }}>
               {isIncoming ? 'Incoming call' : isRinging ? 'Ringing…' : 'Connected'}
             </p>
-            {isGroup && <p style={{ opacity: 0.5, fontSize: '.85em' }}>{call.participants.length} participants</p>}
+            {call.participants.length > 1 && (
+              <p style={{ opacity: 0.5, fontSize: '.85em' }}>
+                {call.participants.length} participants
+              </p>
+            )}
           </>
         )}
 
-        {/* Add Participant Input */}
+        {/* Add participant sheet */}
         {addOpen && isConnected && (
-          <div style={{ position: 'absolute', top: '20%', background: '#111', borderRadius: 16, padding: 20, width: '90%', maxWidth: 320, zIndex: 10 }}>
+          <div style={{ background: '#111', borderRadius: 16, padding: 16, width: '100%', maxWidth: 320 }}>
             <label style={{ display: 'block', marginBottom: 8, fontSize: '.8em', opacity: 0.7 }}>Invite to call</label>
             <input
               value={addHandle}
               onChange={e => setAddHandle(e.target.value.replace(/^@/, ''))}
-              placeholder="@handle"
-              style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: '#222', border: '1px solid #333', color: '#fff', marginBottom: 12 }}
+              placeholder="handle"
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: '#222', border: '1px solid #333', color: '#fff', marginBottom: 8 }}
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setAddOpen(false)} style={{ flex: 1, padding: 10, borderRadius: 10, background: '#222', color: '#fff', border: 0 }}>Cancel</button>
@@ -112,19 +105,14 @@ export function CallOverlay() {
           <button onClick={toggleSpeaker} style={{ width: 56, height: 56, borderRadius: 28, background: call.speakerOn ? '#fff' : '#ffffff22', color: call.speakerOn ? '#000' : '#fff', border: 0, display: 'grid', placeItems: 'center' }}>
             <Icon name="spk" size={22} />
           </button>
-          
-          {/* Toggle Audio/Video */}
           <button onClick={toggleCamera} style={{ width: 56, height: 56, borderRadius: 28, background: call.cameraOn ? '#fff' : '#ffffff22', color: call.cameraOn ? '#000' : '#fff', border: 0, display: 'grid', placeItems: 'center' }}>
             <Icon name={call.cameraOn ? 'video' : 'videooff'} size={22} />
           </button>
-
-          {/* Add Participant */}
           {isConnected && (
-            <button onClick={() => setAddOpen(true)} style={{ width: 56, height: 56, borderRadius: 28, background: '#ffffff22', color: '#fff', border: 0, display: 'grid', placeItems: 'center' }}>
+            <button onClick={() => setAddOpen(v => !v)} style={{ width: 56, height: 56, borderRadius: 28, background: '#ffffff22', color: '#fff', border: 0, display: 'grid', placeItems: 'center' }}>
               <Icon name="plus" size={22} />
             </button>
           )}
-
           <button onClick={endCall} style={{ width: 56, height: 56, borderRadius: 28, background: '#b3261e', color: '#fff', border: 0, display: 'grid', placeItems: 'center' }}>
             <span style={{ transform: 'rotate(135deg)', display: 'inline-block' }}><Icon name="phone" size={22} /></span>
           </button>

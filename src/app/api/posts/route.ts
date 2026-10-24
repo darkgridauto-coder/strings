@@ -66,8 +66,11 @@ export async function GET(req: NextRequest) {
         // Format the reposted content
         let repostOf = null;
         if (p.repostOf) {
+          let repostMediaUrls: string[] = [];
+          try { repostMediaUrls = p.repostOf.mediaUrls ? JSON.parse(p.repostOf.mediaUrls) : []; } catch {}
           repostOf = {
             id: p.repostOf.id, body: p.repostOf.body, media: p.repostOf.media,
+            mediaUrls: repostMediaUrls,
             createdAt: p.repostOf.createdAt, author: p.repostOf.author,
             likeCount: p.repostOf._count.likes, commentCount: p.repostOf._count.comments,
           };

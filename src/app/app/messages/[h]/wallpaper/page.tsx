@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getWallpaper, setWallpaper, WallpaperPreset } from '@/lib/chatWallpaper';
+import { getWallpaper, setWallpaper, clearPerConvWallpaper, hasPerConvOverride, WallpaperPreset } from '@/lib/chatWallpaper';
 import { Icon } from '@/components/ui/Icon';
 import { useToast } from '@/components/ui/Toast';
 
@@ -10,10 +10,11 @@ export default function WallpaperPage({ params }: { params: { h: string } }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [preset, setPreset] = useState<WallpaperPreset>('none');
+  const [overridden, setOverridden] = useState(false);
 
   useEffect(() => {
-    const w = getWallpaper(params.h);
-    setPreset(w.preset);
+    setPreset(getWallpaper(params.h).preset);
+    setOverridden(hasPerConvOverride(params.h));
   }, [params.h]);
 
   const presets: [WallpaperPreset, string][] = [
@@ -27,7 +28,14 @@ export default function WallpaperPage({ params }: { params: { h: string } }) {
   function save(p: WallpaperPreset) {
     setWallpaper(params.h, { preset: p });
     setPreset(p);
+    setOverridden(true);
     showToast('Wallpaper updated');
+  }
+
+  function reset() {
+    clearPerConvWallpaper(params.h);
+    setOverridden(false);
+    showToast('Using default wallpaper');
     setTimeout(() => router.back(), 400);
   }
 
@@ -37,7 +45,15 @@ export default function WallpaperPage({ params }: { params: { h: string } }) {
         <Icon name="back" size={16} /> Back
       </Link>
       <h2 style={{ fontSize: '1.5em', margin: '4px 0 8px' }}>Chat wallpaper</h2>
-      <p className="muted" style={{ marginBottom: 16 }}>Choose a background for this conversation. Stored on this device only.</p>
+      <p className="muted" style={{ marginBottom: 8 }}>
+        Override the default wallpaper for this conversation. Stored on this device.
+      </p>
+      {!overridden && (
+        <p className="muted" style={{ marginBottom: 16, fontSize: '.9em' }}>
+          Currently using the <strong>default</strong> wallpaper.{' '}
+          <Link href="/app/settings/chat-media/wallpaper" style={{ textDecoration: 'underline' }}>Change default</Link>
+        </p>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
         {presets.map(([k, label]) => (
           <button key={k} onClick={() => save(k)} style={{
@@ -55,6 +71,11 @@ export default function WallpaperPage({ params }: { params: { h: string } }) {
           </button>
         ))}
       </div>
+      {overridden && (
+        <button className="btn o" onClick={reset} style={{ marginTop: 16 }}>
+          Reset to default wallpaper
+        </button>
+      )}
     </div>
   );
 }

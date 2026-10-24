@@ -30,11 +30,22 @@ export async function GET() {
       include: { author: { select: { handle: true, displayName: true } }, _count: { select: { likes: true, comments: true } } },
     }),
     prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 7 * 864e5) } } }),
-    prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
-      SELECT date(createdAt) as day, count(*) as count FROM User
-      WHERE createdAt >= datetime('now', '-14 days')
-      GROUP BY date(createdAt) ORDER BY day DESC LIMIT 14
-    `.catch(() => []),
+    (async () => {
+      const since = new Date(Date.now() - 14 * 864e5);
+      const rows = await prisma.user.findMany({
+        where: { createdAt: { gte: since } },
+        select: { createdAt: true },
+      });
+      const buckets: Record<string, number> = {};
+      for (const r of rows) {
+        const day = r.createdAt.toISOString().slice(0, 10);
+        buckets[day] = (buckets[day] || 0) + 1;
+      }
+      return Object.entries(buckets)
+        .map(([day, count]) => ({ day, count }))
+        .sort((a, b) => (a.day < b.day ? 1 : -1))
+        .slice(0, 14);
+    })(),
   ]);
 
   return NextResponse.json({

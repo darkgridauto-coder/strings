@@ -13,21 +13,44 @@ const PRESETS: Record<WallpaperPreset, string> = {
 
 export type Wallpaper = { preset: WallpaperPreset; url?: string };
 
-export function getWallpaper(convId: string): Wallpaper {
-  if (typeof localStorage === 'undefined') return { preset: 'none' };
+const GLOBAL_KEY = 'strings.wp.global';
+const CONV_PREFIX = 'strings.wp.conv.';
+
+function read(key: string): Wallpaper | null {
+  if (typeof localStorage === 'undefined') return null;
   try {
-    const v = localStorage.getItem('strings.wp.' + convId);
-    if (!v) return { preset: 'none' };
+    const v = localStorage.getItem(key);
+    if (!v) return null;
     return JSON.parse(v) as Wallpaper;
-  } catch { return { preset: 'none' }; }
+  } catch { return null; }
 }
 
-export function setWallpaper(convId: string, value: Wallpaper) {
-  try { localStorage.setItem('strings.wp.' + convId, JSON.stringify(value)); } catch {}
+function write(key: string, w: Wallpaper) {
+  try { localStorage.setItem(key, JSON.stringify(w)); } catch {}
+}
+
+export function getGlobalWallpaper(): Wallpaper {
+  return read(GLOBAL_KEY) || { preset: 'none' };
+}
+export function setGlobalWallpaper(w: Wallpaper) {
+  write(GLOBAL_KEY, w);
+}
+
+export function getWallpaper(convId: string): Wallpaper {
+  return read(CONV_PREFIX + convId) || getGlobalWallpaper();
+}
+export function hasPerConvOverride(convId: string): boolean {
+  return read(CONV_PREFIX + convId) !== null;
+}
+export function setWallpaper(convId: string, w: Wallpaper) {
+  write(CONV_PREFIX + convId, w);
+}
+export function clearPerConvWallpaper(convId: string) {
+  try { localStorage.removeItem(CONV_PREFIX + convId); } catch {}
 }
 
 export function wallpaperStyle(w: Wallpaper): CSSProperties | undefined {
-  if (w.preset === 'none') return undefined;
+  if (!w || w.preset === 'none') return undefined;
   if (w.preset === 'custom' && w.url) {
     return {
       backgroundImage: `linear-gradient(rgba(0,0,0,0.12), rgba(0,0,0,0.12)), url(${w.url})`,

@@ -13,43 +13,14 @@ export async function POST(req: NextRequest) {
     }
     const parsed = registerSchema.safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
-    
+
     const { displayName, handle, email, password } = parsed.data;
-    
-    // Check if user exists
-    const existing = await prisma.user.findFirst({ where: { OR: [{ email }, { handle }] } });
-    
-    if (existing) {
-      // If the account is already verified, they must log in.
-      if (existing.emailVerified) {
-        if (existing.email === email) return NextResponse.json({ ok: false, error: 'That email is already registered. Please log in.' }, { status: 409 });
-        return NextResponse.json({ ok: false, error: 'That username is taken.' }, { status: 409 });
-      }
-      
-      // If the account exists but is UNVERIFIED, we allow them to resume signup
-      const passwordHash = await hashPassword(password);
-      const code = generateCode();
-      
-      const user = await prisma.user.update({
-        where: { id: existing.id },
-        data: {
-          displayName,
-          handle, // In case they changed the username
-          passwordHash,
-          emailVerifyHash: hashCode(code),
-          emailVerifyExp: codeExpiry(),
-          emailVerifySentAt: new Date(),
-        },
-      });
-      
-      const mail = await sendEmail({ to: email, subject: 'Your Strings verification code', html: verificationEmail(code, displayName) });
-      if (mail.dev) console.log(`[DEV] Verification code for ${email}: ${code}`);
-      
-      setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
-      return NextResponse.json({ ok: true, user: { id: user.id, handle: user.handle, displayName: user.displayName } });
-    }
-    
-    // Brand new user
+
+    const emailExists = await prisma.user.findUnique({ where: { email } });
+    if (emailExists) return NextResponse.json({ ok: false, error: 'That email is already registered. Sign in or use account recovery.' }, { status: 409 });
+    const handleExists = await prisma.user.findUnique({ where: { handle } });
+    if (handleExists) return NextResponse.json({ ok: false, error: 'That username is taken.' }, { status: 409 });
+
     const passwordHash = await hashPassword(password);
     const code = generateCode();
     const user = await prisma.user.create({
@@ -60,13 +31,35 @@ export async function POST(req: NextRequest) {
         emailVerifySentAt: new Date(),
       },
     });
-    
-    const mail = await sendEmail({ to: email, subject: 'Your Strings verification code', html: verificationEmail(code, displayName) });
-    if (mail.dev) console.log(`[DEV] Verification code for ${email}: ${code}`);
-    
+
+    const mail = await sendEmail({
+      to: email,
+      subject: 'Your Strings verification code',
+      html: verificationEmail(code, displayName),
+    });
+
+    if (mail.dev) {
+      console.log(`[DEV] Verification code for ${email}: ${code}`);
+      setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
+      return NextResponse.json({
+        ok: true,
+        user: { id: user.id, handle: user.handle, displayName: user.displayName },
+        devCode: true,
+      });
+    }
+
+    if (!mail.ok) {
+      console.error('[register] mail failed:', mail.error);
+      setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
+      return NextResponse.json({
+        ok: true,
+        user: { id: user.id, handle: user.handle, displayName: user.displayName },
+        warning: 'We could not send the verification email. ' + (mail.error || 'Use "Resend code" on the next screen, or contact support if it keeps failing.'),
+      });
+    }
+
     setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
     return NextResponse.json({ ok: true, user: { id: user.id, handle: user.handle, displayName: user.displayName } });
-    
   } catch (e) {
     console.error('[register]', e);
     return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 });

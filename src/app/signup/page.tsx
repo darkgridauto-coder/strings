@@ -33,6 +33,11 @@ export default function Page() {
       });
       const d = await r.json();
       if (!r.ok || !d.ok) { setErr(d.error || 'Registration failed'); setBusy(false); return; }
+      if (d.warning) {
+        try { localStorage.setItem('strings.emailWarning', d.warning); } catch {}
+      } else {
+        try { localStorage.removeItem('strings.emailWarning'); } catch {}
+      }
       router.push('/verify');
     } catch {
       setErr('Network error'); setBusy(false);

@@ -215,8 +215,8 @@ export function PostCard({ post, full = false, onChanged }: { post: FeedPost; fu
         {isAuthor ? (
           <Row
             icon="x"
-            title="Delete post"
-            sub="Removes it for everyone · cannot be undone"
+            title={isRepost ? 'Delete repost' : 'Delete post'}
+            sub={isRepost ? 'Removes your repost · original stays up' : 'Removes it for everyone · cannot be undone'}
             onClick={deletePost}
           />
         ) : (

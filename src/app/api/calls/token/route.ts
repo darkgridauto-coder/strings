@@ -1,13 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AccessToken } from 'livekit-server-sdk';
 import { getSession } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   const session = getSession();
   if (!session) return NextResponse.json({ ok: false, error: 'Not signed in' }, { status: 401 });
 
   const { roomName } = await req.json();
-  if (!roomName) return NextResponse.json({ ok: false, error: 'roomName required' }, { status: 400 });
+  if (!roomName || typeof roomName !== 'string') {
+    return NextResponse.json({ ok: false, error: 'roomName required' }, { status: 400 });
+  }
+
+  if (roomName.startsWith('dm-')) {
+    const rest = roomName.slice(3);
+    const dash = rest.indexOf('-');
+    if (dash < 0) return NextResponse.json({ ok: false, error: 'Invalid room' }, { status: 400 });
+    const a = rest.slice(0, dash);
+    const b = rest.slice(dash + 1);
+    if (session.userId !== a && session.userId !== b) {
+      return NextResponse.json({ ok: false, error: 'Not a participant' }, { status: 403 });
+    }
+  } else if (roomName.startsWith('group-')) {
+    const convId = roomName.slice(6);
+    const conv = await prisma.conversation.findUnique({
+      where: { id: convId },
+      include: { participants: { select: { id: true } } },
+    });
+    if (!conv || !conv.participants.some((p) => p.id === session.userId)) {
+      return NextResponse.json({ ok: false, error: 'Not a participant' }, { status: 403 });
+    }
+  } else {
+    return NextResponse.json({ ok: false, error: 'Unrecognised room' }, { status: 400 });
+  }
 
   const apiKey = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;

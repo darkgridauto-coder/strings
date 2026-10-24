@@ -3,25 +3,11 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSocket } from './SocketProvider';
 import { Avatar } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 
-// Lazy-load LiveKit only when a call is actually accepted
 const RealCallOverlay = dynamic(
   () => import('./RealCallOverlay').then((m) => ({ default: m.RealCallOverlay })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        style={{
-          position: 'fixed', inset: 0, zIndex: 100,
-          background: '#000', color: '#fff',
-          display: 'grid', placeItems: 'center',
-        }}
-      >
-        Loading call…
-      </div>
-    ),
-  }
+  { ssr: false, loading: () => null }
 );
 
 type Incoming = { fromHandle: string; roomName: string; video: boolean };
@@ -79,16 +65,29 @@ export function IncomingCallListener() {
   if (!call) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', display: 'grid', placeItems: 'center', zIndex: 999 }}>
-      <div className="card" style={{ textAlign: 'center', width: 320, background: 'var(--bg)' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 999, background: '#0a0a0a', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ position: 'relative', marginBottom: 24 }}>
+        <div style={{ position: 'absolute', inset: -12, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', animation: 'callRing 1.6s ease-out infinite' }} />
         <Avatar name={call.fromHandle} size="lg" />
-        <h3 style={{ marginTop: 12 }}>@{call.fromHandle} is calling…</h3>
-        <p className="muted" style={{ marginTop: 4, marginBottom: 20 }}>{call.video ? 'Video call' : 'Voice call'}</p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <Button variant="primary" onClick={accept}>Accept</Button>
-          <Button variant="outline" onClick={decline}>Decline</Button>
-        </div>
       </div>
+      <div style={{ fontSize: '1.5em', fontWeight: 700 }}>@{call.fromHandle}</div>
+      <div style={{ opacity: 0.6, marginTop: 6 }}>{call.video ? 'Incoming video call' : 'Incoming voice call'}</div>
+
+      <div style={{ display: 'flex', gap: 48, marginTop: 72 }}>
+        <button onClick={decline} aria-label="Decline" style={{ width: 72, height: 72, borderRadius: 36, background: '#b3261e', color: '#fff', border: 0, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+          <span style={{ transform: 'rotate(135deg)', display: 'inline-block' }}><Icon name="phone" size={28} /></span>
+        </button>
+        <button onClick={accept} aria-label="Accept" style={{ width: 72, height: 72, borderRadius: 36, background: '#0a7a3d', color: '#fff', border: 0, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+          <Icon name="phone" size={28} />
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes callRing {
+          0% { transform: scale(1); opacity: 0.6; }
+          100% { transform: scale(1.5); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }

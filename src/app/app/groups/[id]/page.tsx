@@ -29,7 +29,7 @@ export default function Page({ params }: { params: { id: string } }) {
     const roomName = `group-${params.id}`;
     // notify members via socket (best-effort)
     group?.participants?.forEach((p: any) => {
-      if (p.id !== user.id) socket.emit('call-user', { to: p.id, fromHandle: user.handle, roomName, video });
+      if (p.id !== user.id) socket.emit('call-user', { to: p.id, from: user.id, fromHandle: user.handle, roomName, video });
     });
     setCall({ video, roomName });
   }

@@ -10,8 +10,8 @@ import {
   Crown, Pencil, Calendar, Sparkles, LogOut, ExternalLink,
   AlertCircle, Camera, ImagePlus,
   Repeat, Paperclip, Pin,
-  type LucideIcon
-, BarChart3 } from 'lucide-react';
+  type LucideIcon,
+  BarChart3 } from 'lucide-react';
 
 const MAP: Record<string, LucideIcon> = {
   chart: BarChart3,

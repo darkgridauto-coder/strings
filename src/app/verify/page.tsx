@@ -25,6 +25,10 @@ export default function Page() {
   // Auto-focus the hidden input on mount — the user can start typing immediately
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 100);
+    try {
+      const w = localStorage.getItem('strings.emailWarning');
+      if (w) { setErr(w); localStorage.removeItem('strings.emailWarning'); }
+    } catch {}
     return () => clearTimeout(t);
   }, []);
 

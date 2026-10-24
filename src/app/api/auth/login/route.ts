@@ -14,6 +14,10 @@ export async function POST(req: NextRequest) {
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) return NextResponse.json({ ok: false, error: 'Invalid credentials' }, { status: 401 });
 
+    if (user.suspended) {
+      return NextResponse.json({ ok: false, error: 'This account has been suspended.' }, { status: 403 });
+    }
+
     const sessionPayload = { userId: user.id, handle: user.handle, role: user.role };
 
     if (user.twoFactorEnabled) {

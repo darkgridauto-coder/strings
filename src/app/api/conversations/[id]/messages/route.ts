@@ -11,6 +11,8 @@ const MESSAGE_SELECT = {
   mediaUrl: true,
   mediaKind: true,
   mediaDur: true,
+  replyToId: true,
+  reactions: true,
 } as const;
 
 async function loadConversation(id: string) {
@@ -61,9 +63,20 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const mediaUrl = payload.mediaUrl ? String(payload.mediaUrl) : '';
     const mediaKind = payload.mediaKind ? String(payload.mediaKind) : '';
     const mediaDur = payload.mediaDur ? Number(payload.mediaDur) || 0 : 0;
+    const replyToId = payload.replyToId ? String(payload.replyToId) : null;
 
     if (!text && !mediaUrl) {
       return NextResponse.json({ ok: false, error: 'Message cannot be empty' }, { status: 400 });
+    }
+
+    if (replyToId) {
+      const target = await prisma.message.findUnique({
+        where: { id: replyToId },
+        select: { conversationId: true },
+      });
+      if (!target || target.conversationId !== params.id) {
+        return NextResponse.json({ ok: false, error: 'Reply target invalid' }, { status: 400 });
+      }
     }
 
     const message = await prisma.message.create({
@@ -74,6 +87,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         mediaUrl,
         mediaKind,
         mediaDur,
+        replyToId,
       },
       select: MESSAGE_SELECT,
     });

@@ -28,6 +28,11 @@ export default function Page({ params }: { params: { id: string } }) {
   }
   useEffect(() => { load(); }, [params.id]);
 
+  useEffect(() => {
+    document.body.setAttribute('data-immersive', 'true');
+    return () => document.body.removeAttribute('data-immersive');
+  }, []);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;

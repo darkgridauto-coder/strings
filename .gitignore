@@ -88,3 +88,9 @@ strings@*
 !scripts/*.sh
 !docker-entrypoint.sh
 !docker-entrypoint.sh
+
+# Full-tree exports / code dumps — never commit
+strings-app-*.txt
+strings-code-*.txt
+strings-app-export-*.txt
+*.txt.dump

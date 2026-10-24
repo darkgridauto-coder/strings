@@ -14,5 +14,20 @@ export async function GET() {
       receiver: { select: { id: true, handle: true, displayName: true, avatar: true } },
     },
   });
-  return NextResponse.json({ ok: true, calls, meId: s.userId });
+
+  return NextResponse.json({
+    ok: true,
+    calls: calls.map((c) => {
+      const out = c.callerId === s.userId;
+      return {
+        id: c.id,
+        peer: out ? c.receiver : c.caller,
+        direction: out ? 'outgoing' : 'incoming',
+        video: c.type === 'video',
+        status: c.status,
+        createdAt: c.createdAt,
+      };
+    }),
+    meId: s.userId,
+  });
 }
