@@ -40,7 +40,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       select: MESSAGE_SELECT,
     });
 
-    return NextResponse.json({ ok: true, messages });
+    const isRequest = conv.status === 'pending' && conv.requesterId !== s.userId;
+    return NextResponse.json({ ok: true, messages, isRequest });
   } catch (e: any) {
     console.error('[/api/conversations/[id]/messages GET]', e?.message || e);
     return NextResponse.json({ ok: false, error: e?.message || 'Server error' }, { status: 500 });
