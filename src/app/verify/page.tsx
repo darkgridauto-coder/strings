@@ -127,7 +127,7 @@ export default function Page() {
         </button>
       </p>
       <p className="muted" style={{ textAlign: 'center', marginTop: 8, fontSize: '.92em' }}>
-        <Link href="/signup">Change contact detail</Link>
+        <Link href="/app/settings/contact">Change contact detail</Link>
       </p>
     </AuthSplit>
   );

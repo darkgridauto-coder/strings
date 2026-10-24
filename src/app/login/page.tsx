@@ -28,7 +28,7 @@ export default function Page() {
       const d = await r.json();
       if (!r.ok || !d.ok) { setErr('Invalid email or password.'); setBusy(false); return; }
       if (d.needs2FA) { setNeeds2FA(true); setBusy(false); return; }
-      router.push('/app');
+      window.location.href = '/app';
     } catch { setErr('Network error'); setBusy(false); }
   }
 
@@ -44,7 +44,7 @@ export default function Page() {
       });
       const d = await r.json();
       if (!r.ok || !d.ok) { setErr(d.error || 'Invalid code'); setBusy(false); return; }
-      router.push('/app');
+      window.location.href = '/app';
     } catch { setErr('Network error'); setBusy(false); }
   }
 

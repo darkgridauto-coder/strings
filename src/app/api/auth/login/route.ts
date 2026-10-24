@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, needs2FA: true });
     }
 
+    clearSessionCookie();
     setSessionCookie(signSession(sessionPayload));
     return NextResponse.json({ ok: true, user: { id: user.id, handle: user.handle, displayName: user.displayName } });
   } catch (e) {
