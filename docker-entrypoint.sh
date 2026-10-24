@@ -28,6 +28,10 @@ fi
 echo "> Syncing database schema (db push)..."
 npx prisma db push --skip-generate --accept-data-loss --schema=./prisma/schema.prisma
 
+# ---- Ensure uploads directory is writable ----
+mkdir -p public/uploads
+chmod -R 777 public/uploads || true
+
 # ---- Start the app ----
 echo "> Starting server on port ${PORT:-3000}..."
 if [ -f .env ]; then

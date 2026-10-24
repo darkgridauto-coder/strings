@@ -9,7 +9,7 @@ import { useUser } from '@/components/UserProvider';
 import { QuoteCard, QuotePost } from './QuoteCard';
 
 const MAX_PHOTOS = 4;
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 15 * 1024 * 1024;
 
 export function ComposeSheet({
   quoteOfId,

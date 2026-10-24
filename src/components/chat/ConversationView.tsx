@@ -105,7 +105,7 @@ export function ConversationView({
   async function sendFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { setError('File too large (10MB)'); return; }
+    if (file.size > 15 * 1024 * 1024) { setError('File too large (15MB)'); return; }
     setUploading(true);
     try {
       const fd = new FormData(); fd.append('file', file);
