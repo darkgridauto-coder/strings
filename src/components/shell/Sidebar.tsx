@@ -37,10 +37,18 @@ export function Sidebar() {
       <nav>
         {MAIN.map((n) => (
           <Link key={n.href} href={n.href} className={`nav-link${isActive(pathname, n.href) ? ' active' : ''}`}>
-            <NotificationBadge type={n.label === 'Messages' ? 'messages' : n.label === 'Activity' ? 'notifications' : 'messages'}>
-            <Icon name={n.icon} />
-          </NotificationBadge>
-          <span>{n.label}</span>
+            {n.label === 'Messages' ? (
+              <NotificationBadge type="messages">
+                <Icon name={n.icon} />
+              </NotificationBadge>
+            ) : n.label === 'Activity' ? (
+              <NotificationBadge type="notifications">
+                <Icon name={n.icon} />
+              </NotificationBadge>
+            ) : (
+              <Icon name={n.icon} />
+            )}
+            <span>{n.label}</span>
           </Link>
         ))}
       </nav>

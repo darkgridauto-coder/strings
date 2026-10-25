@@ -28,9 +28,13 @@ export function TabBar() {
           aria-label={t.label}
           className={`${isActive(pathname, t.href) ? 'active' : ''}${t.compose ? ' compose' : ''}`}
         >
-          <NotificationBadge type={t.label === 'Messages' ? 'messages' : t.label === 'Activity' ? 'notifications' : 'messages'}>
-          <Icon name={t.icon} size={22} />
-        </NotificationBadge>
+          {t.label === 'Messages' ? (
+            <NotificationBadge type="messages">
+              <Icon name={t.icon} size={22} />
+            </NotificationBadge>
+          ) : (
+            <Icon name={t.icon} size={22} />
+          )}
         </Link>
       ))}
     </nav>
