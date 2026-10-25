@@ -94,3 +94,9 @@ strings-app-*.txt
 strings-code-*.txt
 strings-app-export-*.txt
 *.txt.dump
+
+# Stop accidental commit of pasted turn contents / file dumps
+current_update.txt
+string_update.txt
+*_update.txt
+*.txt.dump
