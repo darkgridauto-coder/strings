@@ -7,7 +7,7 @@ import { isEnabled } from '@/lib/platform';
 
 export async function GET(req: NextRequest) {
   try {
-    const session = getSession();
+    const session = await getSession();
     const author = req.nextUrl.searchParams.get('author');
 
     const where: any = {};

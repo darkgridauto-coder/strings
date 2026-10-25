@@ -4,7 +4,7 @@ import { getSession, verifyPassword } from '@/lib/auth';
 import { verifyCode } from '@/lib/twoFactor';
 
 export async function POST(req: NextRequest) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const { password, code } = await req.json();
   if (!password || !code) return NextResponse.json({ ok: false, error: 'Password and code required' }, { status: 400 });

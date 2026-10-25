@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 
 export async function GET(_: NextRequest, { params }: { params: { h: string } }) {
   try {
-    const session = getSession();
+    const session = await getSession();
     const user = await prisma.user.findUnique({
       where: { handle: params.h },
       select: {

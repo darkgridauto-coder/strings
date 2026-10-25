@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const status = await prisma.status.findUnique({ where: { id: params.id } });
   if (!status) return NextResponse.json({ ok: false }, { status: 404 });

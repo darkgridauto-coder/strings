@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientKey } from '@/lib/rateLimit';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { sendEmail, verificationEmail } from '@/lib/mailer';
 import { generateCode, hashCode, codeExpiry, cooldownRemaining } from '@/lib/emailVerify';
 
-export async function POST() {
-  const s = getSession();
+export async function POST(req: NextRequest) {
+  const rl = rateLimit(getClientKey(req, 'resend'), 3, 60000);
+  if (!rl.ok) return NextResponse.json({ ok: false, error: 'Too many attempts. Try again in ' + rl.retryAfter + 's.' }, { status: 429 });
+
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false, error: 'Not signed in' }, { status: 401 });
   const user = await prisma.user.findUnique({ where: { id: s.userId } });
   if (!user) return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/requireAdmin';
+import { requirePermission } from '@/lib/requirePermission';
+import { revokeAllSessionsForUser } from '@/lib/auth';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -15,7 +16,7 @@ const CATEGORY_POINTS: Record<string, number> = {
 };
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('review');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const parsed = schema.safeParse(await req.json());
@@ -63,6 +64,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   await prisma.$transaction(ops);
+
+  if (suspendWarning) {
+    await revokeAllSessionsForUser(post.author.id).catch(() => {});
+  }
 
   await prisma.adminAction.create({
     data: {

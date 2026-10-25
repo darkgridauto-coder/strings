@@ -16,6 +16,18 @@ const MESSAGE_SELECT = {
   reactions: true,
 } as const;
 
+const MEDIA_ALLOWED = [
+  /^\/uploads\/[A-Za-z0-9._-]+$/,
+  /^https:\/\/res\.cloudinary\.com\/[A-Za-z0-9._\/-]+$/,
+  /^https:\/\/[A-Za-z0-9-]+\.livekit\.cloud\/[A-Za-z0-9._\/-]+$/,
+];
+
+function isValidMediaUrl(url: string): boolean {
+  if (!url) return true;
+  if (url.length > 500) return false;
+  return MEDIA_ALLOWED.some((re) => re.test(url));
+}
+
 async function loadConversation(id: string) {
   return prisma.conversation.findUnique({
     where: { id },
@@ -25,7 +37,7 @@ async function loadConversation(id: string) {
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const s = getSession();
+    const s = await getSession();
     if (!s) return NextResponse.json({ ok: false, error: 'Not signed in' }, { status: 401 });
 
     const conv = await loadConversation(params.id);
@@ -51,13 +63,39 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const s = getSession();
+    const s = await getSession();
     if (!s) return NextResponse.json({ ok: false, error: 'Not signed in' }, { status: 401 });
 
     const conv = await loadConversation(params.id);
     if (!conv) return NextResponse.json({ ok: false, error: 'Conversation not found' }, { status: 404 });
     if (!conv.participants.some((p) => p.id === s.userId)) {
       return NextResponse.json({ ok: false, error: 'Not a participant' }, { status: 403 });
+    }
+
+    // Pending gate: recipient of a pending request cannot send until they accept.
+    if (conv.status === 'pending' && conv.requesterId !== s.userId) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Accept this message request before replying.',
+      }, { status: 403 });
+    }
+
+    // Block gate: applies to DMs only. Groups are unaffected.
+    if (conv.status !== 'group') {
+      const otherId = conv.participants.find((p) => p.id !== s.userId)?.id;
+      if (otherId) {
+        const blocked = await prisma.block.findFirst({
+          where: {
+            OR: [
+              { blockerId: s.userId, blockedId: otherId },
+              { blockerId: otherId, blockedId: s.userId },
+            ],
+          },
+        });
+        if (blocked) {
+          return NextResponse.json({ ok: false, error: 'Cannot message this user.' }, { status: 403 });
+        }
+      }
     }
 
     const payload = await req.json().catch(() => ({}));
@@ -69,6 +107,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     if (!text && !mediaUrl) {
       return NextResponse.json({ ok: false, error: 'Message cannot be empty' }, { status: 400 });
+    }
+
+    if (mediaUrl && !isValidMediaUrl(mediaUrl)) {
+      return NextResponse.json({ ok: false, error: 'Invalid media URL' }, { status: 400 });
     }
 
     if (replyToId) {
@@ -97,23 +139,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const io = (global as any).io;
     if (io) io.to(params.id).emit('message', message);
 
-    // Notify every other conversation participant without delaying message delivery
-    // or allowing notification failures to turn a saved message into an API failure.
-    const recipients = conv.participants.filter((participant) => participant.id !== s.userId);
+    const recipients = conv.participants.filter((p) => p.id !== s.userId);
     const preview = text
       ? text.slice(0, 140)
       : mediaKind
-        ? `Sent ${mediaKind}`
+        ? 'Sent ' + mediaKind
         : 'Sent an attachment';
 
     await Promise.allSettled(
-      recipients.map((recipient) =>
-        notify(
-          recipient.id,
-          'message',
-          `@${s.handle || 'Someone'}: ${preview}`,
-          '/app/messages'
-        )
+      recipients.map((r) =>
+        notify(r.id, 'message', '@' + (s.handle || 'Someone') + ': ' + preview, '/app/messages')
       )
     );
 

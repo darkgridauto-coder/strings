@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/requireAdmin';
+import { requirePermission } from '@/lib/requirePermission';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -11,7 +11,7 @@ const schema = z.object({
 const TIER_TO_TIER: Record<string, string> = { identity: 'identity', professional: 'professional', organisation: 'organisation' };
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('verif');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const parsed = schema.safeParse(await req.json());

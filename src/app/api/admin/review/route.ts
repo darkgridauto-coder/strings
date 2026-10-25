@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/requireAdmin';
+import { requirePermission } from '@/lib/requirePermission';
 
 const GLOSSARY: Record<string, { label: string; points: number; re: RegExp }> = {
   spam:      { label: 'Spam & scams',          points: 1, re: /free money|click here|giveaway|crypto double|dm me to earn|whatsapp me/i },
@@ -20,7 +20,7 @@ function autoFlag(body: string): string[] {
 }
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('review');
   if (!auth.ok) return NextResponse.json({ ok: false }, { status: 403 });
 
   const [queue, done, strikes] = await Promise.all([

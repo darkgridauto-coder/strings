@@ -31,7 +31,7 @@ function scorePost(p: { body: string; likeCount: number; commentCount: number; c
 }
 
 export async function GET(req: NextRequest) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
   const q = (req.nextUrl.searchParams.get('q') ?? '').trim();
   if (!q) return NextResponse.json({ ok: true, users: [], posts: [] });

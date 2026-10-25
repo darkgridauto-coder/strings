@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { generateSecret, keyUri } from '@/lib/twoFactor';
 
 export async function POST() {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const user = await prisma.user.findUnique({ where: { id: s.userId } });
   if (!user) return NextResponse.json({ ok: false }, { status: 404 });

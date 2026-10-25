@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession, clearSessionCookie, verifyPassword } from '@/lib/auth';
 
 export async function DELETE(req: NextRequest) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) return NextResponse.json({ ok: false, error: 'Not signed in' }, { status: 401 });
 
   let password = '';

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const conv = await prisma.conversation.findUnique({
     where: { id: params.id },
@@ -18,7 +18,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const { name } = await req.json();
   if (!name || typeof name !== 'string' || !name.trim()) return NextResponse.json({ ok: false }, { status: 400 });
@@ -29,7 +29,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   await prisma.conversation.update({
     where: { id: params.id },

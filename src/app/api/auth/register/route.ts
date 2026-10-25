@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { registerSchema } from '@/lib/validation';
-import { hashPassword, signSession, setSessionCookie } from '@/lib/auth';
+import { hashPassword, createSession, setSessionCookie } from '@/lib/auth';
 import { sendEmail, verificationEmail } from '@/lib/mailer';
 import { generateCode, hashCode, codeExpiry } from '@/lib/emailVerify';
 import { isEnabled } from '@/lib/platform';
@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
 
     if (mail.dev) {
       console.log(`[DEV] Verification code for ${email}: ${code}`);
-      setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
+      const token = await createSession({ userId: user.id, handle: user.handle, role: user.role }, { userAgent: req.headers.get('user-agent') || '' });
+      setSessionCookie(token);
       return NextResponse.json({
         ok: true,
         user: { id: user.id, handle: user.handle, displayName: user.displayName },
@@ -50,7 +51,8 @@ export async function POST(req: NextRequest) {
 
     if (!mail.ok) {
       console.error('[register] mail failed:', mail.error);
-      setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
+      const token = await createSession({ userId: user.id, handle: user.handle, role: user.role }, { userAgent: req.headers.get('user-agent') || '' });
+      setSessionCookie(token);
       return NextResponse.json({
         ok: true,
         user: { id: user.id, handle: user.handle, displayName: user.displayName },
@@ -58,7 +60,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
+    const token = await createSession({ userId: user.id, handle: user.handle, role: user.role }, { userAgent: req.headers.get('user-agent') || '' });
+      setSessionCookie(token);
     return NextResponse.json({ ok: true, user: { id: user.id, handle: user.handle, displayName: user.displayName } });
   } catch (e) {
     console.error('[register]', e);

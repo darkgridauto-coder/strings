@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function POST(_: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const conv = await prisma.conversation.findFirst({
     where: { id: params.id, participants: { some: { id: s.userId } }, status: 'pending', requesterId: { not: s.userId } },

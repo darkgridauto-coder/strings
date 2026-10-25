@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/requireAdmin';
+import { requirePermission } from '@/lib/requirePermission';
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('support');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const tickets = await prisma.supportTicket.findMany({

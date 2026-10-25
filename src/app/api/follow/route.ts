@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 import { notify } from '@/lib/notify';
 
 export async function POST(req: NextRequest) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const { handle } = await req.json();
   if (handle === s.handle) return NextResponse.json({ ok: false, error: 'Cannot follow yourself' }, { status: 400 });
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const { handle } = await req.json();
   const other = await prisma.user.findUnique({ where: { handle } });

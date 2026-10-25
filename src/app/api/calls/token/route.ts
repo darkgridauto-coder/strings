@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) return NextResponse.json({ ok: false, error: 'Not signed in' }, { status: 401 });
 
   const { roomName } = await req.json();

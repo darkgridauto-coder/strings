@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 export async function requireAdmin(): Promise<
   { ok: true; userId: string; role: string; staffRole: string } | { ok: false; error: string }
 > {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return { ok: false, error: 'Not signed in' };
   const user = await prisma.user.findUnique({
     where: { id: s.userId },

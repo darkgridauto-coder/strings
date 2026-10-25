@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function POST() {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const sub = await prisma.subscription.findUnique({ where: { userId_kind: { userId: s.userId, kind: 'pro' } } });
   if (!sub) return NextResponse.json({ ok: false, error: 'No subscription' }, { status: 404 });

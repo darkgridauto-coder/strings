@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 
 export async function POST(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const s = getSession();
+    const s = await getSession();
     if (!s) return NextResponse.json({ ok: false }, { status: 401 });
     const result = await prisma.message.updateMany({
       where: { conversationId: params.id, senderId: { not: s.userId }, readAt: null },

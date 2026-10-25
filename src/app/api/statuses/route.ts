@@ -12,7 +12,7 @@ const schema = z.object({
 const DAY = 24 * 60 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ ok: false, error: 'Invalid input' }, { status: 400 });
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
 
   // Find users I follow (accepted)

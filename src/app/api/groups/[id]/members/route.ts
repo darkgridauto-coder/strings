@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const role = await prisma.conversationRole.findUnique({ where: { conversationId_userId: { conversationId: params.id, userId: s.userId } } });
   if (!role || !['owner', 'admin'].includes(role.role)) return NextResponse.json({ ok: false, error: 'Not allowed' }, { status: 403 });

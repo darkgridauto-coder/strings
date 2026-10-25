@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 import { verifyCode, generateBackupCodes, hashCode } from '@/lib/twoFactor';
 
 export async function POST(req: NextRequest) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const { code } = await req.json();
   if (!code) return NextResponse.json({ ok: false, error: 'Code required' }, { status: 400 });

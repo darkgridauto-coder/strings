@@ -2,25 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { sendEmail } from '@/lib/mailer';
 import { generateCode, hashCode, codeExpiry } from '@/lib/emailVerify';
+import { rateLimit, getClientKey } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = rateLimit(getClientKey(req, 'recovery'), 5, 60000);
+    if (!rl.ok) return NextResponse.json({ ok: false, error: 'Too many attempts. Try again in ' + rl.retryAfter + 's.' }, { status: 429 });
+
     const { email } = await req.json();
     if (!email) return NextResponse.json({ ok: false, error: 'Email required' }, { status: 400 });
 
     const user = await prisma.user.findUnique({ where: { email } });
-    
-    // Always return ok even if user doesn't exist (privacy)
     if (!user) return NextResponse.json({ ok: true });
 
     const code = generateCode();
-    
-    // We'll reuse the email verification fields to store the reset code
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        emailVerifyHash: hashCode(code),
-        emailVerifyExp: codeExpiry(),
+        passwordResetHash: hashCode(code),
+        passwordResetExp: codeExpiry(),
+        passwordResetSentAt: new Date(),
       },
     });
 

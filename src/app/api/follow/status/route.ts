@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
   const handle = req.nextUrl.searchParams.get('handle');
   if (!handle) return NextResponse.json({ ok: false, error: 'handle required' }, { status: 400 });

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string; userId: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   const role = await prisma.conversationRole.findUnique({ where: { conversationId_userId: { conversationId: params.id, userId: s.userId } } });
   const isOwner = role?.role === 'owner';

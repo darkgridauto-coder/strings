@@ -6,7 +6,7 @@ const AUTHOR_SELECT = { id: true, handle: true, displayName: true, avatar: true,
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = getSession();
+    const session = await getSession();
     const post = await prisma.post.findUnique({
       where: { id: params.id },
       include: {
@@ -88,7 +88,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false, error: 'Not signed in' }, { status: 401 });
 
   const post = await prisma.post.findUnique({
@@ -114,7 +114,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const s = getSession();
+    const s = await getSession();
     if (!s) return NextResponse.json({ ok: false }, { status: 401 });
     const post = await prisma.post.findUnique({ where: { id: params.id }, select: { authorId: true } });
     if (!post) return NextResponse.json({ ok: false }, { status: 404 });

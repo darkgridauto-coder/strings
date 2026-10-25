@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/requireAdmin';
+import { requirePermission } from '@/lib/requirePermission';
 import { autoGrantAdminTier, revokeVerifiedTier } from '@/lib/verifyGrant';
+import { revokeAllSessionsForUser } from '@/lib/auth';
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('users');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const user = await prisma.user.findUnique({
@@ -34,18 +35,30 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('users');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
   const body = await req.json();
   const data: any = {};
   if (typeof body.role === 'string' && ['user', 'admin'].includes(body.role)) data.role = body.role;
   if (typeof body.isPrivate === 'boolean') data.isPrivate = body.isPrivate;
   if (typeof body.emailVerified === 'boolean') data.emailVerified = body.emailVerified;
-  if (typeof body.suspended === 'boolean') { /* handled via report resolution */ }
+  if (typeof body.suspended === 'boolean') {
+    data.suspended = body.suspended;
+    if (body.suspended) {
+      data.suspendedReason = typeof body.suspendedReason === 'string' ? body.suspendedReason.slice(0, 300) : 'Suspended by admin';
+      data.suspendedAt = new Date();
+    } else {
+      data.suspendedReason = '';
+      data.suspendedAt = null;
+    }
+  }
 
   if (Object.keys(data).length === 0) return NextResponse.json({ ok: false, error: 'Nothing to update' }, { status: 400 });
 
   const updated = await prisma.user.update({ where: { id: params.id }, data });
+  if (data.suspended === true) {
+    await revokeAllSessionsForUser(params.id).catch(() => {});
+  }
   if (data.role === 'admin') await autoGrantAdminTier(updated.id).catch(() => {});
   if (data.role === 'user') await revokeVerifiedTier(updated.id).catch(() => {});
   await prisma.adminAction.create({

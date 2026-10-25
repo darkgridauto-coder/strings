@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientKey } from '@/lib/rateLimit';
 import { prisma } from '@/lib/db';
-import { getPending2FA, clearPending2FACookie, setSessionCookie, signSession } from '@/lib/auth';
+import { getPending2FA, clearPending2FACookie, setSessionCookie, createSession } from '@/lib/auth';
 import { verifyCode, verifyBackupCode } from '@/lib/twoFactor';
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(getClientKey(req, 'verify2fa'), 10, 60000);
+  if (!rl.ok) return NextResponse.json({ ok: false, error: 'Too many attempts. Try again in ' + rl.retryAfter + 's.' }, { status: 429 });
+
   const pending = getPending2FA();
   if (!pending) return NextResponse.json({ ok: false, error: 'No pending 2FA session' }, { status: 400 });
 
@@ -15,7 +19,8 @@ export async function POST(req: NextRequest) {
 
   // Try TOTP first
   if (verifyCode(user.twoFactorSecret, code)) {
-    setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
+    const token = await createSession({ userId: user.id, handle: user.handle, role: user.role }, { userAgent: req.headers.get('user-agent') || '' });
+    setSessionCookie(token);
     clearPending2FACookie();
     return NextResponse.json({ ok: true });
   }
@@ -26,7 +31,8 @@ export async function POST(req: NextRequest) {
   const { ok, remaining } = verifyBackupCode(backup, code);
   if (ok) {
     await prisma.user.update({ where: { id: user.id }, data: { twoFactorBackupCodes: JSON.stringify(remaining) } });
-    setSessionCookie(signSession({ userId: user.id, handle: user.handle, role: user.role }));
+    const token = await createSession({ userId: user.id, handle: user.handle, role: user.role }, { userAgent: req.headers.get('user-agent') || '' });
+    setSessionCookie(token);
     clearPending2FACookie();
     return NextResponse.json({ ok: true, usedBackupCode: true });
   }

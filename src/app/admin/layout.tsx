@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) redirect('/login');
   const user = await prisma.user.findUnique({
     where: { id: s.userId },

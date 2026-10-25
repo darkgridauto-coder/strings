@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 export async function requireVerifiedSession(): Promise<
   { ok: true; userId: string; handle: string } | { ok: false; error: string; status: number }
 > {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return { ok: false, error: 'Not signed in', status: 401 };
   const u = await prisma.user.findUnique({
     where: { id: s.userId },

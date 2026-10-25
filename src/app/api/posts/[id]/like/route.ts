@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth';
 import { notify } from '@/lib/notify';
 
 export async function POST(_: NextRequest, { params }: { params: { id: string } }) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) return NextResponse.json({ ok: false }, { status: 401 });
   const post = await prisma.post.findUnique({ where: { id: params.id }, include: { author: { select: { id: true, handle: true } } } });
   if (!post) return NextResponse.json({ ok: false }, { status: 404 });

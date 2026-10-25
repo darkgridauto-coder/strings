@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/requireAdmin';
+import { requirePermission } from '@/lib/requirePermission';
+import { revokeAllSessionsForUser } from '@/lib/auth';
 import { z } from 'zod';
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('reports');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const report = await prisma.report.findUnique({ where: { id: params.id } });
@@ -54,7 +55,7 @@ const decisionSchema = z.object({
 });
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('reports');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const parsed = decisionSchema.safeParse(await req.json());
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         where: { id: report.targetId },
         data: { suspended: true, suspendedReason: reason, suspendedAt: new Date() },
       }).catch(() => {});
+      await revokeAllSessionsForUser(report.targetId).catch(() => {});
     } else if (report.targetType === 'post') {
       const post = await prisma.post.findUnique({ where: { id: report.targetId }, select: { authorId: true } });
       if (post) {
@@ -84,6 +86,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           where: { id: post.authorId },
           data: { suspended: true, suspendedReason: reason, suspendedAt: new Date() },
         }).catch(() => {});
+      await revokeAllSessionsForUser(post.authorId).catch(() => {});
       }
     }
   }
@@ -107,7 +110,7 @@ const metaSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('reports');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const parsed = metaSchema.safeParse(await req.json());

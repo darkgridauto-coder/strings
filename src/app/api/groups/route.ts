@@ -9,7 +9,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const s = getSession();
+  const s = await getSession();
   if (!s) return NextResponse.json({ ok: false }, { status: 401 });
   
   const parsed = schema.safeParse(await req.json());

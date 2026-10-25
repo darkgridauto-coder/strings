@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 import { AppShell } from '@/components/shell/AppShell';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) redirect('/login');
   
   const user = await prisma.user.findUnique({ 

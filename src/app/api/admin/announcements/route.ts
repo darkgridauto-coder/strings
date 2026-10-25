@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAdmin } from '@/lib/requireAdmin';
+import { requirePermission } from '@/lib/requirePermission';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -10,14 +10,14 @@ const schema = z.object({
 });
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('overview');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
   const list = await prisma.announcement.findMany({ orderBy: { createdAt: 'desc' }, take: 50 });
   return NextResponse.json({ ok: true, announcements: list });
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAdmin();
+  const auth = await requirePermission('overview');
   if (!auth.ok) return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
 
   const parsed = schema.safeParse(await req.json());
